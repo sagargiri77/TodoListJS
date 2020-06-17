@@ -1,0 +1,341 @@
+<html>
+    <head>
+        <title>TO-DO</title>
+        <style>
+            *,
+            *:before,
+            *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: inherit;
+            }
+
+            button:active{
+                transform: scale(.9);
+            }
+
+            .deleteButton{
+                padding: 5;
+                align-self: end;
+                border: none;
+                opacity: 0;
+                transition: .5s ease;
+                background-color: whitesmoke;
+            }
+
+            .dot {
+                height: 6px;
+                width: 6px;
+                background-color: #fff;
+                border: 2px solid #bbb;
+                border-radius: 50%;
+                display: inline-block;
+                margin-left: 10px;
+            }
+
+            .task{
+                padding: 10;
+                margin-right: 20;
+                margin-left: 5;
+                color: #b0b2bf;
+                font-size: 16;
+                width: 300;
+                max-width: 300;
+                overflow-wrap: break-word;
+                font-family:Arial, Helvetica, sans-serif;
+            }
+
+            .ToDoActivity:hover .deleteButton{
+               opacity: 1;
+            }
+
+            #newTaskDiv{
+                background-color: #af7eeb;
+                border-radius: 25px;
+                font-weight: bold;
+                box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+                color: #fff;
+                width: 100px;
+                padding: 10 20 10 20;
+                transform: translateY(50%);
+                border: 0;
+                margin-left: 120px;
+            }
+
+            #newTaskDiv:active{
+                width: 85px;
+                margin-left: 128px;
+            }
+
+            #addButton{
+                background-color:orange;
+                border-radius: 10px;
+                font-weight: bold;
+                box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+                color: #fff;
+                padding: 10 15 10 15;
+                border: 0;
+                margin: 5 5 0 0;
+            }
+
+            .dropShadow{
+                border-radius: 2px;
+                box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.15);
+            }
+
+            .time{
+                background-color:orange;
+                border-radius: 8px;
+                font-size: 12;
+                box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1), 0 6px 20px 0 rgba(0, 0, 0, 0.09);
+                color: #fff;
+                padding: 3;
+                border: 0;
+                margin-left: 5px;
+            }
+
+        </style>
+    </head>
+    <body style="background-color: #e0e5fb;">
+        <div style="background-color: #af7eeb; margin-right: auto; margin-left: auto; max-width: 400px; padding: 15 0 15 0;
+        font-family:Arial, Helvetica, sans-serif; font-size:large;" class="dropShadow">
+            <img src="images/logo.png" height="30" width="38" style="margin-left: 20;"></img>
+            <span style="margin-left: 60; font-weight: bold;color: whitesmoke; position: absolute; margin-top: 8;"> Website TO DO</span>          
+        </div>
+        
+        <div style="background-color: whitesmoke;margin-right: auto; margin-left: auto; max-width: 400px; margin-top: 20px;" class="dropShadow" >
+           <ul id="TodoList" type="none"> </ul>
+           <button id="newTaskDiv" onclick="createEditableTask()"> + New Task</div>
+        </div>   
+    
+
+        <script>
+            var todoList = document.getElementById("TodoList");
+            var createTaskButton = document.getElementById("newTask");
+            var addLayoutActive = false;
+
+            RetriveStoredValues();
+
+            function createTask(id, taskValue, priorityValue, timevalue, striked, fromCookies){
+                var li = document.createElement("li");
+                li.id = id;
+                var container = document.createElement("div");
+                container.style.paddingTop = 5;
+                container.style.paddingBottom = 5;
+
+                var table = document.createElement("table");
+                table.classList.add("ToDoActivity");
+                container.appendChild(table);
+                var tr = table.insertRow();
+
+                var dot = document.createElement("span");
+                var td = tr.insertCell();
+                dot.classList.add("dot");
+                td.appendChild(dot);
+
+                var task = tr.insertCell();
+                task.textContent = taskValue;
+                task.classList.add("task");
+
+                if(timevalue != ""){
+                    var time = document.createElement("span");
+                    time.classList.add("time");
+                    time.style.backgroundColor = getColor(parseInt(priorityValue));
+                    time.textContent = timevalue;
+                    task.appendChild(time);
+                }
+
+                var flag = document.createElement("img");
+                var td = tr.insertCell();
+                flag.src = "images/flag" + priorityValue + ".png";
+                flag.style.height = 15;
+                flag.style.width = 10;
+                flag.classList.add("deleteButton");
+                td.appendChild(flag);
+
+                var deleteButton = document.createElement("button");
+                deleteButton.classList.add("deleteButton");
+                td = tr.insertCell();
+
+                var deleteImage =  document.createElement("img");
+                deleteImage.src = "images/delete.png";
+                deleteImage.style.height = 15;
+                deleteImage.style.width = 10;
+
+                deleteButton.appendChild(deleteImage);
+
+                dot.addEventListener("click", function(e){
+                    if(task.style.textDecoration == "line-through"){
+                        dot.style.backgroundColor= "#fff";
+                        task.style.textDecoration = "none";
+                        StoreInCookies(id, taskValue, timevalue, priorityValue, false);
+                    }
+                    else{
+                        dot.style.backgroundColor="#af7eeb";
+                        task.style.textDecoration = "line-through";
+                        StoreInCookies(id, taskValue, timevalue, priorityValue, true);
+                    }
+                });
+
+                if(striked){
+                    dot.style.backgroundColor="#af7eeb";
+                    task.style.textDecoration = "line-through";
+                }
+
+
+                task.addEventListener("click", function(e){
+                    if(task.style.textDecoration == "line-through"){
+                        dot.style.backgroundColor="#fff";
+                        task.style.textDecoration = "none";
+                        StoreInCookies(id, taskValue, timevalue, priorityValue, false);
+                    }
+                    else{
+                        dot.style.backgroundColor="#af7eeb";
+                        task.style.textDecoration = "line-through";
+                        StoreInCookies(id, taskValue, timevalue, priorityValue, true);
+                    }
+                });
+
+                deleteButton.addEventListener("click", function(e){
+                    todoList.removeChild(li);
+                    console.log("del "+id);
+                    document.cookie = "ID"+id+"=l;max-age=-1;";     
+                });
+                td.appendChild(deleteButton);
+                li.appendChild(container);
+                todoList.appendChild(li);
+
+                if(!fromCookies)
+                    StoreInCookies(id, taskValue, timevalue, priorityValue, false);
+            }
+
+            function getColor(index){
+                switch (index){
+                    case 1:
+                        return "#3cbd0f";
+                        break;
+                    case 2:
+                        return "#bdaf0f";
+                        break;
+                    case 3:
+                        return "#bd0f0f";
+                        break;
+                }
+            }
+
+            function createOptions(val, text){
+                var option = document.createElement("option");
+                option.value = val;
+                option.style.color = getColor(val);
+                option.innerHTML = text;
+                return option;
+            }
+
+            function createEditableTask(){
+                if(addLayoutActive) return;
+                addLayoutActive = true;
+
+                var li = document.createElement("li");
+                var container = document.createElement("div");
+                container.style.paddingTop = 5;
+                container.style.paddingBottom = 5;
+
+                var table = document.createElement("table");
+                container.appendChild(table);
+                var tr = table.insertRow();
+
+                var dot = document.createElement("span");
+                var td = tr.insertCell();
+                dot.classList.add("dot");
+                td.appendChild(dot);
+
+                var task = document.createElement("textarea");
+                td = tr.insertCell();
+                task.classList.add("task");
+                task.style.marginRight = 2;
+                task.style.width = 280;
+                td.appendChild(task);
+
+                var flag = document.createElement("select");
+                var td = tr.insertCell();         
+                flag.appendChild(createOptions(1, "Low")); 
+                flag.appendChild(createOptions(2, "Med"));      
+                flag.appendChild(createOptions(3, "High"));            
+                td.appendChild(flag);
+
+                var addbutton = document.createElement("button");
+                addbutton.id = "addButton";
+                addbutton.textContent = "Add";
+                td.appendChild(addbutton);
+                
+                tr = table.insertRow();
+                td = tr.insertCell();
+                td.colSpan = 2;
+
+                var timeName = document.createElement("span");
+                timeName.style.fontSize = 12;
+                timeName.style.marginLeft = 25;
+                timeName.style.color = "#b0b2bf";
+                timeName.innerHTML = "Time";
+                td.appendChild(timeName);
+                
+                var tentativetime = document.createElement("input");
+                tentativetime.setAttribute("type", "text");
+                tentativetime.style.fontSize = 12;
+                tentativetime.style.color = "#b0b2bf";
+                tentativetime.style.marginLeft = 4;
+                td.appendChild(tentativetime);
+
+                var deleteButton = document.createElement("button");
+                deleteButton.style.border = 0;
+                deleteButton.style.padding = 8;
+
+                var deleteImage =  document.createElement("img");
+                deleteImage.src = "images/delete.png";
+                deleteImage.style.height = 15;
+                deleteImage.style.width = 10;
+
+                deleteButton.appendChild(deleteImage);
+
+                deleteButton.addEventListener("click", function(e){
+                    todoList.removeChild(li);
+                    addLayoutActive = false;
+                });
+
+                addbutton.addEventListener("click", function(e){    
+                    if(task.value == "") return;
+
+                    todoList.removeChild(li);
+                    var ID = Math.floor(Math.random() * 10000);
+                    createTask(ID, task.value, flag.value, tentativetime.value, false, false);
+                    addLayoutActive = false;
+                });
+
+                td.appendChild(deleteButton);
+                li.appendChild(container);
+                todoList.appendChild(li);
+            }
+
+            function StoreInCookies(id, text, time, priority, striked){
+                console.log(striked);
+                var obj = {ID: id, Text: text, Time: time, Priority: priority, Striked: striked };
+                document.cookie = "ID" + id + "=" + JSON.stringify(obj) + ";" + "max-age=" + (1*60*60*24*7) + ";";
+                console.log(document.cookie);
+            } 
+
+            function RetriveStoredValues(){
+                var datas = document.cookie.split(';');
+
+                for(let i = 0; i < datas.length; i++){
+                    var data = datas[i].split("=");
+                    data = data[1];
+                    console.log(data);
+                    if(typeof(data) != "undefined"){
+                        var jsdata = JSON.parse(data);
+                        createTask(jsdata.ID, jsdata.Text, jsdata.Priority, jsdata.Time, jsdata.Striked, true);
+                    }
+                }
+            }
+        </script>
+    </body>
+</html>
